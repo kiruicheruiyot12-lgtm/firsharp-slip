@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in – Sharp Slip</title>
+<style>
+body{margin:0;font:17px/1.55 system-ui,sans-serif;background:#eef0ea;color:#16213a}
+main{max-width:420px;margin:0 auto;padding:36px 20px}
+.card{background:#fffefa;border:1px solid #cfd3c8;border-radius:10px;padding:24px}
+h1{margin:0 0 16px;font-size:28px}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tabs button{flex:1;font:inherit;padding:9px;border:2px solid #16213a;background:transparent;border-radius:999px;cursor:pointer;color:#16213a}
+.tabs button[aria-pressed="true"]{background:#16213a;color:#fffefa}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input{font:inherit;width:100%;padding:10px 12px;border:2px solid #16213a;border-radius:8px;background:#fff;color:#16213a}
+.go{width:100%;margin-top:18px;font:inherit;font-weight:600;border:2px solid #16213a;background:#f2a900;color:#16213a;padding:12px;border-radius:999px;cursor:pointer}
+.m{color:#5b6478;font-size:15px}.e{color:#b3392f;min-height:1.5em;margin:10px 0 0}
+a,.lnk{color:#16213a;cursor:pointer;text-decoration:underline;background:none;border:0;font:inherit;padding:0}
+</style></head><body><main><p><a href="/">← Back to home</a></p><div class="card">
+<h1 id="title">Sign in</h1>
+<div id="step1">
+<div class="tabs"><button id="t1" aria-pressed="true">Sign in</button><button id="t2" aria-pressed="false">Create account</button></div>
+<form id="f1"><label for="id">Email or phone number</label>
+<input id="id" autocomplete="username" placeholder="you@email.com or 082 123 4567" required>
+<label for="pw">Password</label>
+<input id="pw" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required>
+<button class="go" id="go1">Sign in</button></form></div>
+<div id="step2" hidden><p class="m" id="hint"></p>
+<form id="f2"><label for="cd">6-digit code</label>
+<input id="cd" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+<button class="go">Verify and continue</button></form>
+<p class="m"><button class="lnk" id="rs">Send a new code</button></p></div>
+<p class="e" id="err" role="alert"></p>
+<p class="m">You must be 18 or older. Betting picks are not guaranteed wins.</p>
+</div></main>
+<script>
+var mode='login',ident='';
+function $(i){return document.getElementById(i)}
+function api(p,b){return fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})}
+function setMode(m){mode=m;$('t1').setAttribute('aria-pressed',m==='login');$('t2').setAttribute('aria-pressed',m!=='login');
+ $('title').textContent=m==='login'?'Sign in':'Create account';$('go1').textContent=m==='login'?'Sign in':'Create account';
+ $('pw').autocomplete=m==='login'?'current-password':'new-password';$('err').textContent=''}
+$('t1').onclick=function(){setMode('login')};$('t2').onclick=function(){setMode('signup')};
+function toVerify(j){ident=j.ident;$('step1').hidden=true;$('step2').hidden=false;$('title').textContent='Enter your code';
+ $('hint').textContent=j.delivered?'We sent a 6-digit code to '+ident+'.':'Code created for '+ident+'. Sending is not set up yet, so look for it in the terminal where the server is running.';$('cd').focus()}
+$('f1').onsubmit=function(e){e.preventDefault();$('err').textContent='';
+ api(mode==='login'?'/api/login':'/api/register',{identifier:$('id').value,password:$('pw').value}).then(function(a){
+  if(!a.ok){$('err').textContent=a.j.error;return}
+  if(a.j.needsVerify)toVerify(a.j);else location.href='members.html'})};
+$('f2').onsubmit=function(e){e.preventDefault();$('err').textContent='';
+ api('/api/verify',{identifier:ident,code:$('cd').value}).then(function(a){
+  if(!a.ok){$('err').textContent=a.j.error;return}location.href='members.html'})};
+$('rs').onclick=function(){api('/api/resend',{identifier:ident}).then(function(a){if(a.ok)toVerify(a.j);else $('err').textContent=a.j.error})};
+fetch('/api/me').then(function(r){if(r.ok)location.href='members.html'});
+</script></body></html>

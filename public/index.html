@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sharp Slip – Sports betting picks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+:root{--bg:#eef0ea;--paper:#fffefa;--ink:#16213a;--mute:#5b6478;--line:#cfd3c8;--hot:#f2a900;--hot-ink:#16213a;--win:#1f7a4d;--loss:#b3392f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1626;--paper:#18223a;--ink:#eef0f6;--mute:#9aa4bd;--line:#2c3856;--win:#4cc088;--loss:#ef7a70}}
+:root[data-theme="dark"]{--bg:#0f1626;--paper:#18223a;--ink:#eef0f6;--mute:#9aa4bd;--line:#2c3856;--win:#4cc088;--loss:#ef7a70}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.55 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 0}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.02em;text-decoration:none}
+.logo i{font-style:normal;background:var(--hot);color:var(--hot-ink);padding:0 6px;border-radius:4px;margin-right:4px}
+nav a.l{font-size:15px;margin-left:20px;color:var(--mute);text-decoration:none}
+nav a.l:hover{color:var(--ink)}
+h1{font-size:clamp(38px,7vw,68px);line-height:1.02;letter-spacing:-.035em;font-weight:800;margin:0 0 18px}
+h2{font-size:clamp(26px,4vw,36px);letter-spacing:-.025em;font-weight:800;margin:0 0 8px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:36px 0 72px}
+.hero p.lead{font-size:19px;color:var(--mute);max-width:46ch;margin:0 0 26px}
+.btn{display:inline-block;border:2px solid var(--ink);background:var(--hot);color:var(--hot-ink);font:inherit;font-weight:600;padding:12px 22px;border-radius:999px;cursor:pointer;text-decoration:none}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink);margin-left:8px}
+:focus-visible{outline:3px solid var(--hot);outline-offset:3px}
+/* the slip */
+.slip{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 22px 18px;position:relative;box-shadow:0 18px 40px -22px rgba(22,33,58,.45);transform:rotate(1.5deg)}
+.slip::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:radial-gradient(circle at 6px 0,transparent 5px,var(--paper) 5.5px) 0 0/12px 8px repeat-x}
+.slip .top{display:flex;justify-content:space-between;font-size:14px;color:var(--mute);border-bottom:2px dashed var(--line);padding-bottom:10px;margin-bottom:14px}
+.slip .match{font-size:22px;font-weight:600;line-height:1.2;margin:0 0 4px}
+.slip .pick{color:var(--mute);margin:0 0 16px}
+.slip .row{display:flex;justify-content:space-between;align-items:end;gap:12px}
+.odds{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.tog{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.tog button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--mute);padding:6px 12px;cursor:pointer}
+.tog button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.slip .why{font-size:15px;color:var(--mute);border-top:2px dashed var(--line);margin-top:16px;padding-top:12px}
+section{padding:56px 0;border-top:1px solid var(--line)}
+.sub{color:var(--mute);margin:0 0 28px;max-width:56ch}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.plan{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:24px;display:flex;flex-direction:column}
+.plan.best{border:2px solid var(--ink)}
+.plan h3{margin:0;font-size:20px}
+.price{font-size:44px;font-weight:800;letter-spacing:-.03em;margin:8px 0 2px}
+.price small{font-size:15px;font-weight:400;color:var(--mute);letter-spacing:0}
+.plan ul{padding-left:18px;margin:14px 0 22px;color:var(--mute);flex:1}
+.plan .btn{text-align:center}
+.tag{align-self:flex-start;background:var(--hot);color:var(--hot-ink);font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;margin-bottom:10px}
+
+/* NEW: Stats Grid Styles */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px}
+.stat-label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);font-weight:600;margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.stat-val.pos{color:var(--win)}
+
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--mute);font-size:14px}
+.w{color:var(--win);font-weight:600}
+.l{color:var(--loss);font-weight:600}
+.p{color:var(--mute);font-weight:600}
+.note{font-size:14px;color:var(--mute);margin-top:14px}
+.rg{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:22px}
+footer{padding:36px 0 48px;color:var(--mute);font-size:14px;border-top:1px solid var(--line)}
+@media(max-width:820px){.hero{grid-template-columns:1fr;gap:36px}.plans{grid-template-columns:1fr}.slip{transform:none}nav .l{display:none}.stats{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><a class="logo" href="#"><i>S</i>Sharp Slip</a><div><a class="l" href="#plans">Plans</a><a class="l" href="#record">Track record</a><a class="l" href="#safe">Play safe</a><a class="l" href="members.html">Sign in</a></div></nav>
+
+<header class="hero">
+<div>
+<h1>Picks with the reasoning shown.</h1>
+<p class="lead">Every pick comes with the odds, the stake size and why we think the price is wrong. Every result is logged, wins and losses.</p>
+<a class="btn" href="#plans">See plans</a><a class="btn ghost" href="#record">View the record</a>
+</div>
+<div class="slip" aria-label="Sample pick">
+<div class="top"><span>Sample pick</span><span>Sat 15:00</span></div>
+<p class="match">Rovers vs Athletic</p>
+<p class="pick">Rovers to win · Stake 1 unit</p>
+<div class="row"><div class="odds" id="odds">2.40</div>
+<div class="tog" role="group" aria-label="Odds format"><button aria-pressed="true" data-f="dec">Decimal</button><button aria-pressed="false" data-f="frac">Fractional</button><button aria-pressed="false" data-f="us">American</button></div></div>
+<p class="why">Market has Rovers at 41% to win. Our model says 48%. That gap is the edge.</p>
+</div>
+</header>
+
+<section id="plans">
+<h2>Pick a plan</h2>
+<p class="sub">Buy a voucher, enter the code here, and your access starts the moment you redeem it. Picks are posted by 10:00 SAST on match days.</p>
+<div class="plans">
+<div class="plan"><h3>Thripple pick</h3><div class="price">R100<small> for 3 day</small></div><ul><li>Today's best-value pick</li><li>Odds, stake and reasoning</li><li>Result logged within 24h</li></ul><button class="btn redeem">Redeem a voucher</button></div>
+<div class="plan best"><span class="tag">Most popular</span><h3>Weekly pass</h3><div class="price">R350<small> for 7 days</small></div><ul><li>All picks for 7 days</li><li>Line-move alerts by email</li><li>Weekend accumulator guide</li></ul><button class="btn redeem">Redeem a voucher</button></div>
+<div class="plan"><h3>Season</h3><div class="price">R700<small> for the season</small></div><ul><li>Everything in Weekly</li><li>Full archive of past picks</li><li>Monthly bankroll review</li></ul><button class="btn redeem">Redeem a voucher</button></div>
+</div>
+<p class="note"><b>How to get a voucher:</b> message us on WhatsApp at [your number] or pay by EFT, and we send your code. Already have one? <a href="#" class="redeem">Redeem it</a>.</p>
+</section>
+
+<section id="record">
+<h2>Track record</h2>
+<p class="sub">Every settled pick, with units won or lost at the odds we posted. Transparency builds trust.</p>
+
+<!-- NEW: Stats Summary -->
+<div class="stats">
+    <div class="stat"><div class="stat-label">Total Profit</div><div class="stat-val pos">+14.25 Units</div></div>
+    <div class="stat"><div class="stat-label">Total Picks</div><div class="stat-val">248</div></div>
+    <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val">54.2%</div></div>
+    <div class="stat"><div class="stat-label">ROI</div><div class="stat-val pos">+5.7%</div></div>
+</div>
+
+<div class="scroll"><table>
+<thead><tr><th>Date</th><th>Sport</th><th>Pick</th><th>Odds</th><th>Stake</th><th>Result</th><th>Units</th></tr></thead>
+<tbody>
+<tr><td>Oct 12</td><td>Football</td><td>Arsenal vs Chelsea: Over 2.5 Goals</td><td>1.95</td><td>1.00u</td><td class="w">Won</td><td class="w">+0.95</td></tr>
+<tr><td>Oct 12</td><td>Basketball</td><td>Lakers -4.5</td><td>1.90</td><td>1.00u</td><td class="l">Lost</td><td class="l">−1.00</td></tr>
+<tr><td>Oct 11</td><td>Football</td><td>Rovers to win</td><td>2.40</td><td>1.00u</td><td class="w">Won</td><td class="w">+1.40</td></tr>
+<tr><td>Oct 10</td><td>Football</td><td>Over 2.5 goals, City v United</td><td>1.95</td><td>1.00u</td><td class="l">Lost</td><td class="l">−1.00</td></tr>
+<tr><td>Oct 10</td><td>Basketball</td><td>Celtics Moneyline</td><td>1.65</td><td>1.00u</td><td class="w">Won</td><td class="w">+0.65</td></tr>
+<tr><td>Oct 9</td><td>Football</td><td>Dynamo +1 handicap</td><td>1.85</td><td>1.00u</td><td class="w">Won</td><td class="w">+0.85</td></tr>
+<tr><td>Oct 9</td><td>Football</td><td>Both teams to score, Wanderers</td><td>1.72</td><td>1.00u</td><td class="p">Push</td><td class="p">0.00</td></tr>
+<tr><td>Oct 8</td><td>Football</td><td>Bayern Munich -1.5</td><td>1.88</td><td>1.00u</td><td class="w">Won</td><td class="w">+0.88</td></tr>
+</tbody></table></div>
+<p class="note">* Past performance is not indicative of future results. 1 Unit = 1% of starting bankroll. Showing a realistic mix of wins, losses, and pushes increases client trust.</p>
+</section>
+
+<section id="safe">
+<div class="rg"><h2>Play safe</h2>
+<p class="sub" style="margin-bottom:0">Betting picks are opinions, not guarantees, and no one wins every bet. Only stake money you can afford to lose. You must be 18 or older to bet in South Africa. If gambling stops being fun, call the South African Responsible Gambling Foundation toll-free on 0800 006 008.</p></div>
+</section>
+</div>
+
+<footer><div class="wrap">© Sharp Slip. Not a bookmaker; we do not accept bets. 18+ only. Check that selling tips is permitted and licensed where you operate.</div></footer>
+
+<script>
+var d=2.4,o=document.getElementById('odds');
+var fmt={dec:function(){return d.toFixed(2)},frac:function(){return '7/5'},us:function(){return '+140'}};
+document.querySelectorAll('.tog button').forEach(function(b){b.addEventListener('click',function(){
+document.querySelectorAll('.tog button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+o.textContent=fmt[b.dataset.f]();});});
+document.querySelectorAll('.redeem').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();location.href='members.html';});});
+</script>
+</body>
+</html>

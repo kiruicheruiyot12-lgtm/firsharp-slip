@@ -1,0 +1,115 @@
+[
+  {
+    "code": "REQ332a3d98",
+    "plan": "weekly",
+    "createdAt": 1792016311984,
+    "activatedAt": 1792016311984,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ7fed4bb9",
+    "plan": "season",
+    "createdAt": 1792016807137,
+    "activatedAt": 1792016807137,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ4992be24",
+    "plan": "single",
+    "createdAt": 1792062325581,
+    "activatedAt": 1792062325581,
+    "userId": "51e2c98f0e29"
+  },
+  {
+    "code": "CWXSQ4HHRWBP",
+    "plan": "weekly",
+    "createdAt": 1792063380222,
+    "activatedAt": null
+  },
+  {
+    "code": "RX8DYMTMQJ4V",
+    "plan": "weekly",
+    "createdAt": 1792063380222,
+    "activatedAt": null
+  },
+  {
+    "code": "MDNEK2FEH5W9",
+    "plan": "weekly",
+    "createdAt": 1792064980263,
+    "activatedAt": null
+  },
+  {
+    "code": "STAUE6PWUFYW",
+    "plan": "weekly",
+    "createdAt": 1792064980263,
+    "activatedAt": null
+  },
+  {
+    "code": "EFP6AH6FA8GB",
+    "plan": "weekly",
+    "createdAt": 1792065223335,
+    "activatedAt": null
+  },
+  {
+    "code": "3UQ47PB6PJVE",
+    "plan": "weekly",
+    "createdAt": 1792065223335,
+    "activatedAt": null
+  },
+  {
+    "code": "REQc25f3fe6",
+    "plan": "single",
+    "createdAt": 1792065330725,
+    "activatedAt": 1792065330725,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ8adcad1f",
+    "plan": "single",
+    "createdAt": 1792065343483,
+    "activatedAt": 1792065343483,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ279bc7e1",
+    "plan": "single",
+    "createdAt": 1792065353433,
+    "activatedAt": 1792065353433,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ31de88c0",
+    "plan": "weekly",
+    "createdAt": 1792066341985,
+    "activatedAt": 1792066341985,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ9eff7399",
+    "plan": "single",
+    "createdAt": 1792066364447,
+    "activatedAt": 1792066364447,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ1af75c96",
+    "plan": "single",
+    "createdAt": 1792066451306,
+    "activatedAt": 1792066451306,
+    "userId": "51e2c98f0e29"
+  },
+  {
+    "code": "REQ0a984f8a",
+    "plan": "season",
+    "createdAt": 1792066839829,
+    "activatedAt": 1792066839829,
+    "userId": "9b118e7f685d"
+  },
+  {
+    "code": "REQ2ee12edb",
+    "plan": "weekly",
+    "createdAt": 1792152051783,
+    "activatedAt": 1792152051783,
+    "userId": "51e2c98f0e29"
+  }
+]

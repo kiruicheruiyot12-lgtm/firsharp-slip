@@ -1,0 +1,42 @@
+[
+  {
+    "id": "9b118e7f685d",
+    "ident": "briandefirmino@gmail.com",
+    "kind": "email",
+    "verified": true,
+    "createdAt": 1791986453036,
+    "pw": "scrypt:32768:8:1$x6xxnMBQRGUtONwD$3def07942523ab0c8ccc493df0c03c8091ca226b500badec9907dc4fbbfa9f1009887774b34f398bd7589fc97f6f08534e4b669f005e604afcc3cf7b7515469d"
+  },
+  {
+    "id": "03c27e72bed5",
+    "ident": "kiruibrian8575@gmail.com",
+    "kind": "email",
+    "verified": false,
+    "createdAt": 1791987818114,
+    "pw": "scrypt:32768:8:1$26nJShqFhuAE6LKy$fee0a24872115d03690857ace480dd8a32374f68b05c032831e762e0c272f0f65ab904885a62bfd7ae79b6fcf8ab4f5fbc49ae41e20d0db34283097b963ca222"
+  },
+  {
+    "id": "3cf2b73ccfbf",
+    "ident": "firminomart8517@gmail.com",
+    "kind": "email",
+    "verified": true,
+    "createdAt": 1792012259850,
+    "pw": "scrypt:32768:8:1$4xDzwoKYtVL1Z08B$72d9f25a5e89bb82ed4085f4e1dedc3921015c9487ee47cddf691916dc543f466922da6ea8fdc486dd5a9f22953578b322ac477f998e2b9a3591e603fcb11408"
+  },
+  {
+    "id": "34680171c61e",
+    "ident": "kiruicheruiyot12@gmail.com",
+    "kind": "email",
+    "verified": true,
+    "createdAt": 1792014180531,
+    "pw": "scrypt:32768:8:1$FYpFEjouvqMtP41g$185c6f1889c83460ba284c90cc9131c5297d5970e8dd711737a19c106971230988fdf39ada2acb74594efb325177ce9d8fd393fe2aca7ed062e923d9cf4f3113"
+  },
+  {
+    "id": "51e2c98f0e29",
+    "ident": "firminomart87@gmail.com",
+    "kind": "email",
+    "verified": true,
+    "createdAt": 1792062307979,
+    "pw": "scrypt:32768:8:1$NQ7tStzAlqBHiBf3$79d82e78dd97e7b140e4b467c1e7b55d2c51da26f861f265d53966196a704a01f511052251ba3b2d38035f002e22087b9ef3014569c4002f1ce0c7dd3143511e"
+  }
+]

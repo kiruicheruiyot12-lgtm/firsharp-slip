@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your picks – Sharp Slip</title>
+<style>
+body{margin:0;font:17px/1.55 system-ui,sans-serif;background:#eef0ea;color:#16213a}
+main{max-width:680px;margin:0 auto;padding:28px 20px}
+.card{background:#fffefa;border:1px solid #cfd3c8;border-radius:8px;padding:18px 20px;margin:0 0 16px}
+.card h3{margin:0 0 4px}.m{color:#5b6478;margin:0 0 8px}.o{font-size:32px;font-weight:800;float:right}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#msg{color:#b3392f}
+input{font:inherit;padding:10px 12px;border:2px solid #16213a;border-radius:8px;width:100%;max-width:280px;letter-spacing:.08em;text-transform:uppercase}
+button{font:inherit;font-weight:600;border:2px solid #16213a;background:#f2a900;color:#16213a;padding:10px 20px;border-radius:999px;cursor:pointer;margin-left:6px}
+button.out{background:transparent;margin:0}
+select{font:inherit;padding:10px 12px;border:2px solid #16213a;border-radius:8px;max-width:100%;margin-bottom:8px;display:block}
+</style></head><body><main>
+<div class="top"><h1>Your picks</h1><button class="out" id="so">Sign out</button></div>
+<p class="m" id="meta"></p><p id="msg" role="alert"></p>
+<form id="f" class="card"><p class="m" style="margin-bottom:8px"><b>Unlock your picks.</b> Choose the plan, then enter the number of the voucher you bought.</p>
+<select id="p" aria-label="Plan"><option value="single">Single pick – R90 (1 day)</option><option value="weekly" selected>Weekly pass – R350 (7 days)</option><option value="season">Season – R2,700 (365 days)</option></select>
+<input id="c" placeholder="Voucher number" autocomplete="off" aria-label="Voucher number"><button>Submit</button></form>
+<p class="m" id="pend"></p>
+<div id="list"></div>
+<p class="m"><a href="/">Back to home</a></p>
+<p class="m">Picks are opinions, not guarantees. You must be 18 or older to bet. Only stake what you can afford to lose. Free help: 0800 006 008 (South African Responsible Gambling Foundation).</p>
+</main>
+<script>
+function $(i){return document.getElementById(i)}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;e.textContent=x;return e}
+function get(p){return fetch(p).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})})}
+function load(){
+ get('/api/me').then(function(m){
+  if(!m.ok){location.href='account.html';return}
+  $('meta').textContent='Signed in as '+m.j.identifier;
+  var rq=(m.j.requests||[]).slice(-1)[0];
+  $('pend').textContent=rq&&rq.status==='pending'?'Your '+rq.plan+' voucher is waiting for confirmation. Refresh this page in a few minutes.':rq&&rq.status==='rejected'?'We could not confirm your last voucher. Please contact us.':'';
+  return get('/api/picks').then(function(a){
+   var list=$('list');list.textContent='';
+   if(!a.ok){$('msg').textContent=a.j.error;return}
+   $('msg').textContent='';
+   $('meta').textContent='Signed in as '+m.j.identifier+' · '+a.j.plan+' until '+new Date(a.j.expires).toLocaleString('en-ZA');
+   if(!a.j.picks.length)list.appendChild(el('p','m','No picks posted yet. Check back on match day.'));
+   a.j.picks.forEach(function(p){var c=el('div','card');c.appendChild(el('span','o',p.odds));
+    c.appendChild(el('h3','',p.match));c.appendChild(el('p','m',p.pick+' · Stake '+p.stake));
+    if(p.why)c.appendChild(el('p','',p.why));c.appendChild(el('p','m','Result: '+p.result));list.appendChild(c)})})})}
+$('f').onsubmit=function(e){e.preventDefault();
+ fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:$('c').value,plan:$('p').value})})
+ .then(function(r){return r.json().then(function(j){if(!r.ok){$('msg').textContent=j.error}else{$('c').value='';$('msg').textContent='';load()}})})};
+$('so').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.href='/'})};
+load();
+</script></body></html>
