@@ -2,6 +2,7 @@ import html, json, os, re, secrets, threading, time, urllib.request
 from flask import Flask, request, jsonify, session, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -9,27 +10,72 @@ app = Flask(__name__, static_folder=os.path.join(BASE, "public"), static_url_pat
 app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
                   PERMANENT_SESSION_LIFETIME=30 * 86400)
+
+# --- DATABASE SETUP ---
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///local_test.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# --- MODELS ---
+class User(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    ident = db.Column(db.String(120), unique=True, nullable=False)
+    kind = db.Column(db.String(10), nullable=False)
+    pw = db.Column(db.String(255), nullable=False)
+    verified = db.Column(db.Boolean, default=False)
+    createdAt = db.Column(db.BigInteger)
+
+class Voucher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    plan = db.Column(db.String(20), nullable=False)
+    createdAt = db.Column(db.BigInteger)
+    activatedAt = db.Column(db.BigInteger, nullable=True)
+    userId = db.Column(db.String(50), nullable=True)
+
+class Request(db.Model):
+    id = db.Column(db.String(10), primary_key=True)
+    userId = db.Column(db.String(50))
+    ident = db.Column(db.String(120))
+    plan = db.Column(db.String(20))
+    code = db.Column(db.String(50))
+    raw = db.Column(db.String(50))
+    createdAt = db.Column(db.BigInteger)
+    status = db.Column(db.String(20))
+
+with app.app_context():
+    db.create_all()
+# ------------------
+
 lock = threading.RLock()
 
+# UPDATED: Synced exactly with the homepage and members.html dropdown
 PLANS = {
-    "single": {"name": "Single pick", "price": "R90", "days": 1, "only_latest": True},
-    "weekly": {"name": "Weekly pass", "price": "R350", "days": 7},
-    "season": {"name": "Season", "price": "R2,700", "days": 365},
+    "triple": {"name": "Thripple pick – R100 (3 days)", "price": "R100", "days": 3, "only_latest": True},
+    "weekly": {"name": "Weekly pass – R350 (7 days)", "price": "R350", "days": 7},
+    "season": {"name": "Season – R700 (365 days)", "price": "R700", "days": 365},
 }
 
-def read(name):
-    with open(os.path.join(BASE, name), encoding="utf-8") as f:
-        return json.load(f)
+# Keep read/write ONLY for picks.json
+def read_picks():
+    try:
+        with open(os.path.join(BASE, "picks.json"), encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
 
-def write(name, data):
-    with open(os.path.join(BASE, name), "w", encoding="utf-8") as f:
+def write_picks(data):
+    with open(os.path.join(BASE, "picks.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 def now_ms():
     return int(time.time() * 1000)
 
 def tg_send(text):
-    """Send a message to your Telegram channel or chat. Returns True if sent."""
     token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat:
         return False
@@ -55,7 +101,6 @@ def limited(key, n=10):
     return len(recent) > n
 
 def clean_id(raw):
-    """Return ('email'|'phone', normalised) or (None, None)."""
     s = str(raw or "").strip().lower()
     if "@" in s:
         ok = re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", s)
@@ -66,25 +111,23 @@ def clean_id(raw):
     return ("phone", "+" + d) if re.fullmatch(r"\d{10,15}", d) else (None, None)
 
 # ---- users ----
-def find_user(ident):
-    return next((u for u in read("users.json") if u["ident"] == ident), None)
-
 def current_user():
     uid = session.get("uid")
-    return next((u for u in read("users.json") if u["id"] == uid), None) if uid else None
+    return User.query.filter_by(id=uid).first() if uid else None
 
 def login_session(u):
     session.clear()
     session.permanent = True
-    session["uid"] = u["id"]
+    session["uid"] = u.id
 
 def user_access(uid):
     best = None
-    for v in read("vouchers.json"):
-        if v.get("userId") != uid or not v.get("activatedAt"):
+    vouchers = Voucher.query.filter_by(userId=uid).all()
+    for v in vouchers:
+        if not v.activatedAt:
             continue
-        plan = PLANS[v["plan"]]
-        exp = v["activatedAt"] + plan["days"] * 86400000
+        plan = PLANS[v.plan]
+        exp = v.activatedAt + plan["days"] * 86400000
         if exp > now_ms() and (best is None or exp > best[1]):
             best = (plan, exp)
     return best
@@ -105,17 +148,15 @@ def register():
     if len(pw) < 8:
         return jsonify(error="Password must be at least 8 characters."), 400
     with lock:
-        users = read("users.json")
-        u = next((x for x in users if x["ident"] == ident), None)
-        if u and u.get("verified"):
+        u = User.query.filter_by(ident=ident).first()
+        if u and u.verified:
             return jsonify(error="An account with this email or phone already exists. Sign in instead."), 409
         if not u:
-            u = {"id": secrets.token_hex(6), "ident": ident, "kind": kind,
-                 "verified": False, "createdAt": now_ms()}
-            users.append(u)
-        u["pw"] = generate_password_hash(pw)
-        u["verified"] = True
-        write("users.json", users)
+            u = User(id=secrets.token_hex(6), ident=ident, kind=kind, verified=False, createdAt=now_ms())
+            db.session.add(u)
+        u.pw = generate_password_hash(pw)
+        u.verified = True
+        db.session.commit()
     login_session(u)
     return jsonify(ok=True)
 
@@ -125,8 +166,8 @@ def login():
         return jsonify(error="Too many attempts. Try again in 15 minutes."), 429
     b = request.get_json(silent=True) or {}
     kind, ident = clean_id(b.get("identifier"))
-    u = find_user(ident) if kind else None
-    if not u or not check_password_hash(u["pw"], str(b.get("password") or "")):
+    u = User.query.filter_by(ident=ident).first() if kind else None
+    if not u or not check_password_hash(u.pw, str(b.get("password") or "")):
         return jsonify(error="Wrong email, phone or password."), 401
     login_session(u)
     return jsonify(ok=True)
@@ -141,10 +182,10 @@ def me():
     u = current_user()
     if not u:
         return jsonify(error="Not signed in"), 401
-    a = user_access(u["id"])
-    mine = [{"plan": PLANS[r["plan"]]["name"], "status": r["status"]}
-            for r in read("requests.json") if r["userId"] == u["id"]][-5:]
-    return jsonify(identifier=u["ident"], plan=a[0]["name"] if a else None,
+    a = user_access(u.id)
+    reqs = Request.query.filter_by(userId=u.id).order_by(Request.createdAt.desc()).limit(5).all()
+    mine = [{"plan": PLANS[r.plan]["name"], "status": r.status} for r in reqs]
+    return jsonify(identifier=u.ident, plan=a[0]["name"] if a else None,
                    expires=a[1] if a else None, requests=mine)
 
 @app.post("/api/redeem")
@@ -157,41 +198,47 @@ def redeem():
     b = request.get_json(silent=True) or {}
     raw = str(b.get("code") or "").strip()[:40]
     code = norm(raw)
+    
     with lock:
-        vouchers = read("vouchers.json")
-        v = next((x for x in vouchers if x["code"] == code), None)
+        v = Voucher.query.filter_by(code=code).first()
         if not v:
-            # Not one of our own codes: treat it as a bought voucher and send it to you to check
             pk = b.get("plan")
             if pk not in PLANS or len(code) < 4:
                 return jsonify(error="Enter your voucher number and choose a plan."), 400
-            reqs = read("requests.json")
-            if any(r["code"] == code for r in reqs):
+            existing_req = Request.query.filter_by(code=code).first()
+            if existing_req:
                 return jsonify(error="This voucher number has already been submitted."), 409
-            r = {"id": secrets.token_hex(4), "userId": u["id"], "ident": u["ident"], "plan": pk,
-                 "code": code, "raw": raw, "createdAt": now_ms(), "status": "pending"}
+            
+            r = Request(id=secrets.token_hex(4), userId=u.id, ident=u.ident, plan=pk,
+                        code=code, raw=raw, createdAt=now_ms(), status="pending")
             auto = os.environ.get("AUTO_APPROVE", "true") != "false"
-            if auto:  # give access straight away; you check the voucher afterwards
-                r["status"] = "approved"
-                vouchers.append({"code": "REQ" + r["id"], "plan": pk, "createdAt": now_ms(),
-                                 "activatedAt": now_ms(), "userId": u["id"]})
-                write("vouchers.json", vouchers)
-            reqs.append(r)
-            write("requests.json", reqs)
+            
+            if auto:
+                r.status = "approved"
+                new_v = Voucher(code="REQ" + r.id, plan=pk, createdAt=now_ms(),
+                                activatedAt=now_ms(), userId=u.id)
+                db.session.add(new_v)
+                
+            db.session.add(r)
+            db.session.commit()
+            
             head = "Voucher received (access already granted, please check it)" if auto else "Voucher to check"
             tg_send(f"<b>{head}</b>\nPlan: {PLANS[pk]['name']} ({PLANS[pk]['price']})\n"
                     f"Voucher number: <code>{html.escape(raw)}</code>\n"
-                    f"Customer: {html.escape(u['ident'])}\nRequest ID: <code>{r['id']}</code>")
+                    f"Customer: {html.escape(u.ident)}\nRequest ID: <code>{r.id}</code>")
             if auto:
                 return jsonify(plan=PLANS[pk]["name"], expires=now_ms() + PLANS[pk]["days"] * 86400000)
             return jsonify(pending=True, plan=PLANS[pk]["name"]), 202
-        if v.get("userId") and v["userId"] != u["id"]:
+            
+        if v.userId and v.userId != u.id:
             return jsonify(error="This voucher has already been used on another account."), 403
-        if not v.get("userId"):
-            v["userId"], v["activatedAt"] = u["id"], now_ms()
-            write("vouchers.json", vouchers)
-    plan = PLANS[v["plan"]]
-    exp = v["activatedAt"] + plan["days"] * 86400000
+        if not v.userId:
+            v.userId = u.id
+            v.activatedAt = now_ms()
+            db.session.commit()
+            
+    plan = PLANS[v.plan]
+    exp = v.activatedAt + plan["days"] * 86400000
     if exp < now_ms():
         return jsonify(error="This voucher has expired."), 403
     return jsonify(plan=plan["name"], expires=exp)
@@ -201,10 +248,11 @@ def picks():
     u = current_user()
     if not u:
         return jsonify(error="Please sign in."), 401
-    a = user_access(u["id"])
+    a = user_access(u.id)
     if not a:
         return jsonify(error="No active plan yet. Submit a voucher to unlock picks.", noPlan=True), 402
-    rows = sorted(read("picks.json"), key=lambda p: p["createdAt"], reverse=True)
+    
+    rows = sorted(read_picks(), key=lambda p: p["createdAt"], reverse=True)
     if a[0].get("only_latest"):
         rows = rows[:1]
     return jsonify(plan=a[0]["name"], expires=a[1], picks=rows)
@@ -221,25 +269,24 @@ def make_vouchers():
     body = request.get_json(silent=True) or {}
     plan, count, custom = body.get("plan"), int(body.get("count", 1)), body.get("codes")
     if plan not in PLANS or (not custom and not 1 <= count <= 500):
-        return jsonify(error="plan must be single, weekly or season; count 1-500"), 400
+        return jsonify(error="plan must be triple, weekly or season; count 1-500"), 400
     chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+    made = []
+    
     with lock:
-        vouchers = read("vouchers.json")
-        made = []
-        if custom:  # your own codes, e.g. {"plan":"weekly","codes":["482913","771204"]}
-            existing = {v["code"] for v in vouchers}
+        if custom:
             for raw in list(custom)[:500]:
                 code = norm(raw)
-                if len(code) >= 6 and code not in existing:
-                    vouchers.append({"code": code, "plan": plan, "createdAt": now_ms(), "activatedAt": None})
-                    existing.add(code)
+                if len(code) >= 6 and not Voucher.query.filter_by(code=code).first():
+                    db.session.add(Voucher(code=code, plan=plan, createdAt=now_ms(), activatedAt=None))
                     made.append(code)
         else:
             for _ in range(count):
                 code = "".join(secrets.choice(chars) for _ in range(12))
-                vouchers.append({"code": code, "plan": plan, "createdAt": now_ms(), "activatedAt": None})
+                db.session.add(Voucher(code=code, plan=plan, createdAt=now_ms(), activatedAt=None))
                 made.append("-".join(code[i:i + 4] for i in range(0, 12, 4)))
-        write("vouchers.json", vouchers)
+        db.session.commit()
+        
     sent = False
     if body.get("telegram", True):
         sent = True
@@ -259,7 +306,9 @@ def add_pick():
            "match": b["match"], "pick": b["pick"], "odds": str(b["odds"]),
            "stake": b.get("stake") or "1 unit", "why": b.get("why", ""), "result": "pending"}
     with lock:
-        rows = read("picks.json"); rows.append(row); write("picks.json", rows)
+        rows = read_picks()
+        rows.append(row)
+        write_picks(rows)
     return jsonify(row)
 
 @app.post("/api/admin/picks/<pick_id>/result")
@@ -268,12 +317,12 @@ def set_result(pick_id):
         return jsonify(error="No"), 401
     result = (request.get_json(silent=True) or {}).get("result")
     with lock:
-        rows = read("picks.json")
+        rows = read_picks()
         row = next((p for p in rows if p["id"] == pick_id), None)
         if not row:
             return jsonify(error="Not found"), 404
         row["result"] = result
-        write("picks.json", rows)
+        write_picks(rows)
     return jsonify(row)
 
 @app.get("/api/admin/requests")
@@ -281,7 +330,11 @@ def list_requests():
     if not is_admin():
         return jsonify(error="No"), 401
     status = request.args.get("status", "pending")
-    return jsonify([r for r in read("requests.json") if r["status"] == status])
+    reqs = Request.query.filter_by(status=status).all()
+    return jsonify([{
+        "id": r.id, "userId": r.userId, "ident": r.ident, "plan": r.plan,
+        "code": r.code, "raw": r.raw, "createdAt": r.createdAt, "status": r.status
+    } for r in reqs])
 
 @app.post("/api/admin/requests/<rid>/<action>")
 def review_request(rid, action):
@@ -290,23 +343,25 @@ def review_request(rid, action):
     if action not in ("approve", "reject"):
         return jsonify(error="Use approve or reject"), 400
     with lock:
-        reqs = read("requests.json")
-        r = next((x for x in reqs if x["id"] == rid), None)
+        r = Request.query.filter_by(id=rid).first()
         if not r:
             return jsonify(error="Not found"), 404
-        if r["status"] != "pending" and not (action == "reject" and r["status"] == "approved"):
-            return jsonify(error="Already " + r["status"]), 400
-        if action == "reject" and r["status"] == "approved":  # take back access already given
-            vs = read("vouchers.json")
-            write("vouchers.json", [v for v in vs if v["code"] != "REQ" + r["id"]])
+        if r.status != "pending" and not (action == "reject" and r.status == "approved"):
+            return jsonify(error="Already " + r.status), 400
+            
+        if action == "reject" and r.status == "approved":
+            v = Voucher.query.filter_by(code="REQ" + r.id).first()
+            if v:
+                db.session.delete(v)
+                
         if action == "approve":
-            vouchers = read("vouchers.json")
-            vouchers.append({"code": "REQ" + r["id"], "plan": r["plan"], "createdAt": now_ms(),
-                             "activatedAt": now_ms(), "userId": r["userId"]})
-            write("vouchers.json", vouchers)
-        r["status"] = "approved" if action == "approve" else "rejected"
-        write("requests.json", reqs)
-    return jsonify(r)
+            db.session.add(Voucher(code="REQ" + r.id, plan=r.plan, createdAt=now_ms(),
+                                   activatedAt=now_ms(), userId=r.userId))
+                                   
+        r.status = "approved" if action == "approve" else "rejected"
+        db.session.commit()
+        
+    return jsonify({"id": r.id, "status": r.status})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 3000))
