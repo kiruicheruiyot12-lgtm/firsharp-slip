@@ -17,7 +17,11 @@ select{font:inherit;padding:10px 12px;border:2px solid #16213a;border-radius:8px
 <div class="top"><h1>Your picks</h1><button class="out" id="so">Sign out</button></div>
 <p class="m" id="meta"></p><p id="msg" role="alert"></p>
 <form id="f" class="card"><p class="m" style="margin-bottom:8px"><b>Unlock your picks.</b> Choose the plan, then enter the number of the voucher you bought.</p>
-<select id="p" aria-label="Plan"><option value="single">Single pick – R90 (1 day)</option><option value="weekly" selected>Weekly pass – R350 (7 days)</option><option value="season">Season – R2,700 (365 days)</option></select>
+<select id="p" aria-label="Plan">
+  <option value="triple">Thripple pick – R100 (3 days)</option>
+  <option value="weekly" selected>Weekly pass – R350 (7 days)</option>
+  <option value="season">Season – R700 (365 days)</option>
+</select>
 <input id="c" placeholder="Voucher number" autocomplete="off" aria-label="Voucher number"><button>Submit</button></form>
 <p class="m" id="pend"></p>
 <div id="list"></div>
